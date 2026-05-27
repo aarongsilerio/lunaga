@@ -1,36 +1,36 @@
 'use client';
 
 /**
- * Patient Registration Page
+ * Admin Login Page
  * 
- * New patient sign-up with email validation and strong password requirements.
- * Doctor accounts are admin-provisioned only (not self-registered).
+ * Platform administrator authentication portal.
+ * Restricted access to platform administrators only.
  * 
  * Features:
- * - Email validation with format checking
- * - Strong password requirements (8+ chars, uppercase, number)
- * - Comprehensive form validation
- * - Error handling with user feedback
+ * - Email and password authentication
+ * - Form validation with user feedback
  * - Loading states for better UX
- * - Redirect to patient dashboard on success
- * - Clickable Terms and Privacy Policy links with modal
+ * - Secure token management
+ * - Redirect to admin panel on success
+ * - Clickable Terms of Service and Privacy Policy modals
+ * - Links to patient and doctor portals
  * 
  * Security:
- * - No role selection (patient role is implicit)
- * - Backend enforces patient role on registration
- * - Password strength validation before submission
+ * - Backend enforces ADMIN role
+ * - Limited admin account creation (hardcoded or seeded)
+ * - Token stored securely
+ * - Role validation on every protected request
  */
 
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/hooks';
-import { UserRole } from '@/lib/auth/types';
 import { TermsPrivacyModal } from '@/lib/components/TermsPrivacyModal';
 
-export default function PatientRegisterPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
-  const { register, isLoading, error, clearError } = useAuth();
+  const { login, isLoading, error, clearError } = useAuth();
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,12 +39,10 @@ export default function PatientRegisterPage() {
   // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
 
   /**
    * Validate email format
-   * Checks for basic email structure
    */
   const isValidEmail = (value: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -52,25 +50,14 @@ export default function PatientRegisterPage() {
   };
 
   /**
-   * Validate password strength
-   * - Minimum 8 characters
-   * - At least one uppercase letter
-   * - At least one number
-   */
-  const isStrongPassword = (value: string): boolean => {
-    return value.length >= 8 && /[A-Z]/.test(value) && /[0-9]/.test(value);
-  };
-
-  /**
    * Handle form submission
-   * Validates input, calls register API, redirects on success
    */
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLocalError(null);
     clearError();
 
-    // Email validation
+    // Validation
     if (!email.trim()) {
       setLocalError('Email is required');
       return;
@@ -81,31 +68,18 @@ export default function PatientRegisterPage() {
       return;
     }
 
-    // Password validation
     if (!password) {
       setLocalError('Password is required');
       return;
     }
 
-    if (!isStrongPassword(password)) {
-      setLocalError('Password must be at least 8 characters with an uppercase letter and number');
-      return;
-    }
-
-    // Password confirmation
-    if (password !== confirmPassword) {
-      setLocalError('Passwords do not match');
-      return;
-    }
-
-    // Submit
     try {
-      // Always register as PATIENT - doctor accounts are admin-provisioned
-      await register(email.trim(), password, UserRole.PATIENT);
-      router.push('/dashboard');
+      await login(email.trim(), password);
+      // Auth context validates role - redirect happens if not ADMIN
+      router.push('/admin/doctors');
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Registration failed. Please try again.';
+        err instanceof Error ? err.message : 'Login failed. Please try again.';
       setLocalError(message);
     }
   };
@@ -113,20 +87,21 @@ export default function PatientRegisterPage() {
   const displayError = localError || error;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F7FAFC] via-[#F7FAFC] to-[#1E3A5F]/10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F7FAFC] via-[#F7FAFC] to-[#6FAEE7]/10 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         {/* Logo / Branding */}
         <div className="text-center mb-8">
-          <img src="/nav-logo.png" alt="Lunága Logo" className="h-10 rounded-lg mx-auto" />
+          <h1 className="text-3xl font-bold text-[#1E3A5F] mb-2">Lunága</h1>
+          <p className="text-[#6FAEE7]">Administration Portal</p>
         </div>
 
-        {/* Registration Card */}
+        {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <h2 className="text-2xl font-semibold text-[#1E3A5F] mb-2 text-center">
-            Create Account
+            Admin Login
           </h2>
           <p className="text-gray-600 text-sm text-center mb-6">
-            Join Lunága and take control of your healthcare
+            Platform administration and doctor management
           </p>
 
           {/* Error Alert */}
@@ -136,7 +111,14 @@ export default function PatientRegisterPage() {
             </div>
           )}
 
-          {/* Registration Form */}
+          {/* Warning Alert */}
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-xs text-yellow-800 font-medium">
+              ⚠️ This portal is restricted to platform administrators only.
+            </p>
+          </div>
+
+          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Input */}
             <div>
@@ -149,7 +131,7 @@ export default function PatientRegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
-                placeholder="you@example.com"
+                placeholder="admin@lunaga.com"
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6FAEE7] focus:border-transparent transition-all disabled:bg-gray-50 disabled:text-gray-400"
               />
             </div>
@@ -159,46 +141,15 @@ export default function PatientRegisterPage() {
               <label htmlFor="password" className="block text-sm font-medium text-[#1E3A5F] mb-2">
                 Password
               </label>
-              <p className="text-xs text-gray-500 mb-2">
-                At least 8 characters, 1 uppercase letter, and 1 number
-              </p>
               <input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                placeholder="Create a strong password"
+                placeholder="Enter your password"
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6FAEE7] focus:border-transparent transition-all disabled:bg-gray-50 disabled:text-gray-400"
               />
-            </div>
-
-            {/* Confirm Password Input */}
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-[#1E3A5F] mb-2"
-              >
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={isLoading}
-                placeholder="Confirm your password"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6FAEE7] focus:border-transparent transition-all disabled:bg-gray-50 disabled:text-gray-400"
-              />
-            </div>
-
-            {/* Info Alert - Doctor Signup Note */}
-            <div className="bg-blue-50 border border-[#6FAEE7] rounded-lg p-4 mt-4">
-              <p className="text-sm text-[#1E3A5F] font-medium">👨‍⚕️ Are you a healthcare professional?</p>
-              <p className="text-xs text-gray-600 mt-2">
-                Doctor accounts are provisioned directly by our administration team to maintain 
-                practitioner legitimacy and trust. Healthcare professionals should contact our team.
-              </p>
             </div>
 
             {/* Submit Button */}
@@ -210,10 +161,10 @@ export default function PatientRegisterPage() {
               {isLoading ? (
                 <span className="flex items-center justify-center">
                   <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent mr-2"></span>
-                  Creating account...
+                  Signing in...
                 </span>
               ) : (
-                'Create Account'
+                'Sign In'
               )}
             </button>
           </form>
@@ -225,14 +176,14 @@ export default function PatientRegisterPage() {
             <div className="flex-1 border-t border-gray-200"></div>
           </div>
 
-          {/* Login Links */}
+          {/* Navigation Links */}
           <p className="text-center text-gray-600 text-sm mb-4">
-            Already have an account?{' '}
+            Are you a patient?{' '}
             <Link
               href="/login"
               className="text-[#6FAEE7] hover:text-[#1E3A5F] font-semibold transition-colors"
             >
-              Log in
+              Patient login
             </Link>
           </p>
 
@@ -249,7 +200,7 @@ export default function PatientRegisterPage() {
 
         {/* Footer Info */}
         <p className="text-center text-xs text-gray-500 mt-6">
-          By creating an account, you agree to our{' '}
+          By signing in, you agree to our{' '}
           <button
             type="button"
             onClick={() => {

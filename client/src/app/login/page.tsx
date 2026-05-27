@@ -1,20 +1,35 @@
 'use client';
 
 /**
- * Login Page
- * User authentication form for existing users
- * Handles email/password validation and login submission
+ * Patient Login Page
+ * 
+ * User authentication form for existing patient users.
+ * Handles email/password validation and login submission.
+ * 
+ * Features:
+ * - Email validation with format checking
+ * - Error handling with user feedback
+ * - Loading states for better UX
+ * - Links to doctor and admin portals
+ * - Clickable Terms of Service and Privacy Policy modals
+ * - Redirect to patient dashboard on success
  */
 
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/hooks';
+import { TermsPrivacyModal } from '@/lib/components/TermsPrivacyModal';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, isLoading, error, clearError } = useAuth();
 
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'terms' | 'privacy'>('terms');
+
+  // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
@@ -151,7 +166,7 @@ export default function LoginPage() {
           </div>
 
           {/* Sign Up Link */}
-          <p className="text-center text-gray-600">
+          <p className="text-center text-gray-600 text-sm mb-4">
             Don't have an account?{' '}
             <Link
               href="/register"
@@ -160,12 +175,64 @@ export default function LoginPage() {
               Create one
             </Link>
           </p>
+
+          {/* Doctor Login Link */}
+          <p className="text-center text-gray-600 text-sm mb-4">
+            Healthcare professional?{' '}
+            <Link
+              href="/doctor/login"
+              className="text-[#6FAEE7] hover:text-[#1E3A5F] font-semibold transition-colors"
+            >
+              Doctor login
+            </Link>
+          </p>
+
+          {/* Admin Login Link */}
+          <p className="text-center text-gray-600 text-xs">
+            Administrator?{' '}
+            <Link
+              href="/admin/login"
+              className="text-[#6FAEE7] hover:text-[#1E3A5F] font-semibold transition-colors"
+            >
+              Admin login
+            </Link>
+          </p>
         </div>
 
         {/* Footer Info */}
         <p className="text-center text-sm text-gray-500 mt-6">
-          By logging in, you agree to our Terms of Service and Privacy Policy
+          By logging in, you agree to our{' '}
+          <button
+            type="button"
+            onClick={() => {
+              setModalType('terms');
+              setIsModalOpen(true);
+            }}
+            className="text-[#6FAEE7] hover:text-[#1E3A5F] font-semibold transition-colors cursor-pointer underline"
+            aria-label="Open Terms of Service"
+          >
+            Terms of Service
+          </button>
+          {' '}and{' '}
+          <button
+            type="button"
+            onClick={() => {
+              setModalType('privacy');
+              setIsModalOpen(true);
+            }}
+            className="text-[#6FAEE7] hover:text-[#1E3A5F] font-semibold transition-colors cursor-pointer underline"
+            aria-label="Open Privacy Policy"
+          >
+            Privacy Policy
+          </button>
         </p>
+
+        {/* Terms and Privacy Modal */}
+        <TermsPrivacyModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          type={modalType}
+        />
       </div>
     </div>
   );

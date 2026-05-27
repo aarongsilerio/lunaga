@@ -8,6 +8,7 @@
 import { useContext } from 'react';
 import { AuthContext } from './context';
 import type { AuthContextType } from './types';
+import { UserRole } from './types';
 
 /**
  * Hook to access authentication context
@@ -48,7 +49,7 @@ export function useCurrentUser() {
  */
 export function useIsDoctor(): boolean {
   const user = useCurrentUser();
-  return user?.role === 'DOCTOR';
+  return user?.role === UserRole.DOCTOR;
 }
 
 /**
@@ -57,5 +58,14 @@ export function useIsDoctor(): boolean {
  */
 export function useIsPatient(): boolean {
   const user = useCurrentUser();
-  return user?.role === 'PATIENT';
+  return user?.role === UserRole.PATIENT;
+}
+
+/**
+ * Hook to check if user is an admin
+ * @returns true if current user is an admin
+ */
+export function useIsAdmin(): boolean {
+  const user = useCurrentUser();
+  return user?.role === UserRole.ADMIN;
 }

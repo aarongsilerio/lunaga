@@ -20,7 +20,7 @@ export { UserRole } from './types';
 export { AuthProvider, AuthContext } from './context';
 
 // Hooks
-export { useAuth, useIsAuthenticated, useCurrentUser, useIsDoctor, useIsPatient } from './hooks';
+export { useAuth, useIsAuthenticated, useCurrentUser, useIsDoctor, useIsPatient, useIsAdmin } from './hooks';
 
 // Client functions
 export {

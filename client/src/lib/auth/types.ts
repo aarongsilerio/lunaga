@@ -5,10 +5,15 @@
 
 /**
  * User role enum matching backend
+ * 
+ * PATIENT: End users seeking healthcare consultations
+ * DOCTOR: Healthcare professionals providing consultations
+ * ADMIN: Platform administrators managing doctor accounts
  */
 export enum UserRole {
   PATIENT = 'PATIENT',
   DOCTOR = 'DOCTOR',
+  ADMIN = 'ADMIN',
 }
 
 /**
@@ -18,6 +23,8 @@ export interface User {
   id: number;
   email: string;
   role: UserRole;
+  isApproved?: boolean;
+  specialization?: string;
   createdAt: string;
 }
 
