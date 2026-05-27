@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  role      Role      @default(USER)
+  createdAt DateTime  @default(now()) @db.Timestamptz
+  updatedAt DateTime  @updatedAt @db.Timestamptz
+
+  patientProfile PatientProfile?
+  doctorProfile  DoctorProfile?
+  notifications  Notification[]
+}
+
+model PatientProfile {
+  id               Int     @id @default(autoincrement())
+  userId           Int     @unique
+  name             String
+  birthday         DateTime @db.Timestamptz
+  weight           Float?
+  height           Float?
+  medicalHistory   String?
+  profilePicture   String?
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+}
+
+model DoctorProfile {
+  id             Int     @id @default(autoincrement())
+  userId         Int     @unique
+  name           String
+  specialization String
+  bio            String?
+  availability   String?
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+}
+
+model Appointment {
+  id           Int      @id @default(autoincrement())
+  patientId    Int
+  doctorId     Int
+  datetime     DateTime @db.Timestamptz
+  status       String   @default("scheduled")
+  meetingRoomId Int?
+  notes        String?
+  prescription String?
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  updatedAt    DateTime @updatedAt @db.Timestamptz
+
+  patient PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor  DoctorProfile  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([doctorId])
+}
+
+model Notification {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  message   String
+  read      Boolean @default(false)
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}

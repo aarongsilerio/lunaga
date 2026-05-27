@@ -1,0 +1,26 @@
+{
+  "name": "lunaga",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "build": "cd client && npm run build && cd server && npm run build",
+    "install:all": "npm install && cd client && npm install && cd server && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aarongsilerio/lunaga.git"
+  },
+  "keywords": [],
+  "author": "Aaron Gabriel Silerio",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/aarongsilerio/lunaga/issues"
+  },
+  "homepage": "https://github.com/aarongsilerio/lunaga#readme"
+}
